@@ -1,0 +1,124 @@
+# PostizMetro on Coolify, docker-compose application.
+# All secrets come from Coolify environment variables, never from this file.
+# Domains are set in Coolify docker_compose_domains, not here.
+# Postgres 14.5 and Redis 7.2 match the live Postiz Coolify stack.
+services:
+  postgres:
+    image: postgres:14.5
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: ${POSTGRES_DB:-postizmetro}
+    volumes:
+      - postizmetro-db:/var/lib/postgresql/data
+  redis:
+    image: redis:7.2
+    restart: always
+    volumes:
+      - postizmetro-redis:/data
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL}
+      MAIN_URL: ${MAIN_URL}
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      UPLOAD_DIRECTORY: ${UPLOAD_DIRECTORY:-./uploads}
+      POSTIZMETRO_REVIEW_MODE: ${POSTIZMETRO_REVIEW_MODE:-true}
+      POSTIZMETRO_REVIEW_USER_ID: ${POSTIZMETRO_REVIEW_USER_ID}
+      POSTIZMETRO_REVIEW_ORG_ID: ${POSTIZMETRO_REVIEW_ORG_ID}
+      PORT: "3000"
+    volumes:
+      - postizmetro-uploads:/app/uploads
+  workers:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+      - backend
+    command: ["node", "apps/workers/dist/apps/workers/src/main.js"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL}
+      MAIN_URL: ${MAIN_URL}
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      UPLOAD_DIRECTORY: ${UPLOAD_DIRECTORY:-./uploads}
+      POSTIZMETRO_REVIEW_MODE: ${POSTIZMETRO_REVIEW_MODE:-true}
+      POSTIZMETRO_REVIEW_USER_ID: ${POSTIZMETRO_REVIEW_USER_ID}
+      POSTIZMETRO_REVIEW_ORG_ID: ${POSTIZMETRO_REVIEW_ORG_ID}
+    volumes:
+      - postizmetro-uploads:/app/uploads
+  cron:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+      - backend
+    command: ["node", "apps/cron/dist/apps/cron/src/main.js"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL}
+      MAIN_URL: ${MAIN_URL}
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      UPLOAD_DIRECTORY: ${UPLOAD_DIRECTORY:-./uploads}
+      POSTIZMETRO_REVIEW_MODE: ${POSTIZMETRO_REVIEW_MODE:-true}
+      POSTIZMETRO_REVIEW_USER_ID: ${POSTIZMETRO_REVIEW_USER_ID}
+      POSTIZMETRO_REVIEW_ORG_ID: ${POSTIZMETRO_REVIEW_ORG_ID}
+  seed:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: "no"
+    depends_on:
+      - postgres
+      - backend
+    command: ["sh", "-c", "pnpm dlx prisma@6.5.0 db push --schema ./libraries/nestjs-libraries/src/database/prisma/schema.prisma && node scripts/seed-review-workspace.mjs"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      POSTIZMETRO_REVIEW_USER_EMAIL: ${POSTIZMETRO_REVIEW_USER_EMAIL}
+      POSTIZMETRO_REVIEW_PASSWORD_HASH: ${POSTIZMETRO_REVIEW_PASSWORD_HASH}
+      POSTIZMETRO_REVIEW_ORG_NAME: ${POSTIZMETRO_REVIEW_ORG_NAME}
+      POSTIZMETRO_REVIEW_USER_ID: ${POSTIZMETRO_REVIEW_USER_ID}
+      POSTIZMETRO_REVIEW_ORG_ID: ${POSTIZMETRO_REVIEW_ORG_ID}
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+      NEXT_TURBOPACK_EXPERIMENTAL_USE_SYSTEM_TLS_CERTS: "1"
+      PORT: "3000"
+volumes:
+  postizmetro-db: {}
+  postizmetro-redis: {}
+  postizmetro-uploads: {}
