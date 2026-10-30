@@ -20,7 +20,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.backend
     restart: always
     depends_on:
       - postgres
@@ -44,7 +44,7 @@ services:
   workers:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.workers
     restart: always
     depends_on:
       - postgres
@@ -69,7 +69,7 @@ services:
   cron:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.cron
     restart: always
     depends_on:
       - postgres
@@ -92,7 +92,7 @@ services:
   seed:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.backend
     restart: "no"
     depends_on:
       - postgres
