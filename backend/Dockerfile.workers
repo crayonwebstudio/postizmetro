@@ -10,7 +10,10 @@ COPY libraries ./libraries
 COPY apps ./apps
 COPY scripts ./scripts
 COPY i18n.json i18n.lock version.txt ./
-RUN pnpm install --ignore-scripts
+RUN pnpm install
+# NOTE: do NOT use --ignore-scripts here: bcrypt's native binding is built
+# by its install script, and ignoring scripts caused
+# 'Cannot find module bcrypt/lib/binding/napi-v3/bcrypt_lib.node' at runtime.
 RUN pnpm dlx prisma@6.5.0 generate --schema ./libraries/nestjs-libraries/src/database/prisma/schema.prisma
 RUN NODE_OPTIONS=--max-old-space-size=4096 pnpm run build:workers
 ENV PORT=3000
