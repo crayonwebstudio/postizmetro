@@ -6,7 +6,11 @@ FROM node:22-bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
 RUN npm install -g pnpm@10.6.1
 WORKDIR /app
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json tsconfig.base.json ./
+# .npmrc is required: it sets node-linker=hoisted, which upstream Postiz
+# relies on for type resolution (express, form-data, mastra, etc.).
+# Without it, pnpm defaults to isolated linking and nest build fails
+# with TS2307 cannot find module errors.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json tsconfig.base.json .npmrc ./
 COPY libraries ./libraries
 COPY apps ./apps
 COPY scripts ./scripts
