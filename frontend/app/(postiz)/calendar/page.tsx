@@ -19,7 +19,7 @@ export default function CalendarPage() {
     try { await put(`/posts/${ev.id}/date`, { date: ev.start.toISOString() }); refresh(); } catch (e: any) { alert(e.message); }
   }
   return (
-    <Page title="Calendar" description="Metronic calendar mapped from Postiz posts. Dragging a post calls PUT /posts/:id/date on the backend, it does not only move locally.">
+    <Page title="Calendar" description="PostizMetro calendar from Postiz posts. Dragging a post calls PUT /posts/:id/date on the backend, it does not only move locally.">
       {error && <ErrorBox error={error} />}
       {loading && <Empty text="Loading calendar..." />}
       {!loading && events.length === 0 && !error && <Empty text="No scheduled posts with a publish date in this range." />}
