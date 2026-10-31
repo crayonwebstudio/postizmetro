@@ -25,7 +25,7 @@ export function SidebarHeader() {
               <img src={toAbsoluteUrl('/media/app/logo-35.svg')} alt="image" className="min-w-[18px]" />
             </div>
             <span className="text-white text-lg font-semibold hidden lg:block">
-              Metronic
+              PostizMetro
             </span>
           </Link>
 
