@@ -19,7 +19,7 @@ export function SearchBar() {
         <PopoverContent className="w-56 p-4" align="center">
           <div className="relative">
             <Search className="size-4 text-muted-foreground absolute top-1/2 -translate-y-1/2 start-2" />
-            <Input type="text" className="px-7" placeholder="Search shop" />
+            <Input type="text" className="px-7" placeholder="Search posts" />
             <Badge
               className="absolute top-1/2 -translate-y-1/2 end-2 gap-1"
               variant="outline"
@@ -36,7 +36,7 @@ export function SearchBar() {
   return (
     <div className="relative lg:w-[280px]">
       <Search className="size-4 text-muted-foreground absolute top-1/2 -translate-y-1/2 start-2" />
-      <Input type="text" className="px-7" placeholder="Search shop" />
+      <Input type="text" className="px-7" placeholder="Search posts" />
       <Badge
         className="absolute top-1/2 -translate-y-1/2 end-2 gap-1"
         variant="outline"
