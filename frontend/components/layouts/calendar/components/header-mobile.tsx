@@ -30,7 +30,7 @@ export function HeaderMobile() {
               <img src={toAbsoluteUrl('/media/app/logo-35.svg')} alt="image" className="min-w-[15px]" />
             </div>
             <span className="text-white text-lg font-semibold">
-              Metronic
+              PostizMetro
             </span>
           </Link>
 
