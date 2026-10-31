@@ -4,6 +4,19 @@
 // never a plaintext password, never committed), POSTIZMETRO_REVIEW_ORG_NAME.
 // Optional env: POSTIZMETRO_REVIEW_USER_ID, POSTIZMETRO_REVIEW_ORG_ID.
 // This script intentionally has no default password, email, or key.
+//
+// FIX 2026-10-31 (FIX-401): the previous version used
+// prisma.user.upsert({ where: { email } }), but User's unique key is
+// [email, providerName], not email alone, so that upsert is invalid in
+// Prisma Client and would fail if it ever ran. It also never set the
+// user id on the update path, so a pre-existing email user with a
+// different id would keep that id and PublicWorkspaceMiddleware, which
+// looks up by POSTIZMETRO_REVIEW_USER_ID, would throw Forbidden -> 401.
+// This version: find by id first, else find by email+provider, else
+// create with the env id. If an email user exists with a different id
+// and has no child rows, it is recreated with the env id; if it has
+// child rows, the script aborts loudly instead of silently seeding a
+// mismatched user.
 import { PrismaClient } from '@prisma/client';
 
 const required = [
@@ -20,32 +33,86 @@ for (const k of required) {
 const prisma = new PrismaClient();
 const userId = process.env.POSTIZMETRO_REVIEW_USER_ID || undefined;
 const orgId = process.env.POSTIZMETRO_REVIEW_ORG_ID || undefined;
-const user = await prisma.user.upsert({
-  where: { email: process.env.POSTIZMETRO_REVIEW_USER_EMAIL },
-  update: { activated: true, isSuperAdmin: true },
-  create: {
-    ...(userId ? { id: userId } : {}),
-    email: process.env.POSTIZMETRO_REVIEW_USER_EMAIL,
-    password: process.env.POSTIZMETRO_REVIEW_PASSWORD_HASH,
-    providerName: 'LOCAL',
-    name: 'PostizMetro review workspace',
-    timezone: 0,
-    activated: true,
-    isSuperAdmin: true,
-  },
-});
-const org = await prisma.organization.upsert({
-  where: { id: orgId || user.id },
-  update: { name: process.env.POSTIZMETRO_REVIEW_ORG_NAME },
-  create: {
-    ...(orgId ? { id: orgId } : {}),
-    name: process.env.POSTIZMETRO_REVIEW_ORG_NAME,
-  },
-});
+const email = process.env.POSTIZMETRO_REVIEW_USER_EMAIL;
+
+let user = null;
+let userRecreated = false;
+if (userId) {
+  user = await prisma.user.findUnique({ where: { id: userId } });
+}
+if (user) {
+  user = await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      email,
+      password: process.env.POSTIZMETRO_REVIEW_PASSWORD_HASH,
+      providerName: 'LOCAL',
+      name: 'PostizMetro review workspace',
+      timezone: 0,
+      activated: true,
+      isSuperAdmin: true,
+    },
+  });
+} else {
+  const existing = await prisma.user.findFirst({
+    where: { email, providerName: 'LOCAL' },
+  });
+  if (existing && userId && existing.id !== userId) {
+    // Review DB only: no channels or posts can exist yet while 401
+    // blocks all authenticated routes, but abort if child rows exist.
+    const links = await prisma.userOrganization.count({
+      where: { userId: existing.id },
+    });
+    const comments = await prisma.comments.count({
+      where: { userId: existing.id },
+    });
+    if (links > 0 || comments > 0) {
+      console.error(
+        'SEED_MISMATCH: existing email user has a different id and has child rows; refusing to recreate. Set POSTIZMETRO_REVIEW_USER_ID to the existing user id instead.',
+      );
+      await prisma.$disconnect();
+      process.exit(2);
+    }
+    await prisma.user.delete({ where: { id: existing.id } });
+    userRecreated = true;
+  }
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        ...(userId ? { id: userId } : {}),
+        email,
+        password: process.env.POSTIZMETRO_REVIEW_PASSWORD_HASH,
+        providerName: 'LOCAL',
+        name: 'PostizMetro review workspace',
+        timezone: 0,
+        activated: true,
+        isSuperAdmin: true,
+      },
+    });
+  }
+}
+
+let org = null;
+if (orgId) {
+  org = await prisma.organization.findUnique({ where: { id: orgId } });
+}
+if (org) {
+  org = await prisma.organization.update({
+    where: { id: org.id },
+    data: { name: process.env.POSTIZMETRO_REVIEW_ORG_NAME },
+  });
+} else {
+  org = await prisma.organization.create({
+    data: {
+      ...(orgId ? { id: orgId } : {}),
+      name: process.env.POSTIZMETRO_REVIEW_ORG_NAME,
+    },
+  });
+}
 await prisma.userOrganization.upsert({
   where: { userId_organizationId: { userId: user.id, organizationId: org.id } },
   update: { role: 'SUPERADMIN', disabled: false },
   create: { userId: user.id, organizationId: org.id, role: 'SUPERADMIN' },
 });
-console.log(JSON.stringify({ seeded: true, userId: user.id, organizationId: org.id }));
+console.log(JSON.stringify({ seeded: true, userId: user.id, organizationId: org.id, userRecreated, userIdMatchesEnv: userId ? user.id === userId : null, orgIdMatchesEnv: orgId ? org.id === orgId : null }));
 await prisma.$disconnect();
