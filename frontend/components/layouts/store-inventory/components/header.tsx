@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Bell, LayoutGrid, Menu, MessageCircleMore } from 'lucide-react';
 import Link from 'next/link';
-import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useScrollPosition } from '@/hooks/use-scroll-position';
@@ -17,7 +16,6 @@ import { AppsDropdownMenu } from './apps-dropdown-menu';
 import { Breadcrumb } from './breadcrumb';
 import { ChatSheet } from './chat-sheet';
 import { NotificationsSheet } from './notifications-sheet';
-import { SearchBar } from './search-bar';
 import { SidebarMenu } from './sidebar-menu';
 import { UserDropdownMenu } from './user-dropdown-menu';
 import { usePathname } from 'next/navigation';
@@ -47,11 +45,9 @@ export function Header() {
         {/* HeaderLogo */}
         <div className="flex lg:hidden items-center gap-2.5">
           <Link href="/launches" className="shrink-0">
-            <img
-              src={toAbsoluteUrl('/media/app/mini-logo.svg')}
-              className="h-[25px] w-full"
-              alt="mini-logo"
-            />
+            <span className="text-base font-bold tracking-tight text-foreground">
+              PostizMetro
+            </span>
           </Link>
           <div className="flex items-center">
             {mobileMode && (
@@ -82,9 +78,9 @@ export function Header() {
         {/* Mega Menu */}
         {!mobileMode && <Breadcrumb />}
 
-        {/* HeaderTopbar */}
+        {/* HeaderTopbar: SearchBar removed, it was a non-functional
+            demo search with no handler. */}
         <div className="flex items-center gap-3">
-          <SearchBar />
           <NotificationsSheet
             trigger={
               <Button
