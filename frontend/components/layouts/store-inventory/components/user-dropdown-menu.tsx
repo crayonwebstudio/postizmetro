@@ -6,7 +6,6 @@ import {
   Gift,
   HelpCircle,
   Keyboard,
-  LogOut,
   Moon,
   Settings,
   Sun,
@@ -47,9 +46,9 @@ export function UserDropdownMenu() {
         <Avatar className="size-7">
           <AvatarImage
             src={toAbsoluteUrl('/media/avatars/300-2.png')}
-            alt="@reui"
+            alt="Review workspace"
           />
-          <AvatarFallback>CH</AvatarFallback>
+          <AvatarFallback>RW</AvatarFallback>
           <AvatarIndicator className="-end-2 -top-2">
             <AvatarStatus variant="online" className="size-2.5" />
           </AvatarIndicator>
@@ -66,9 +65,9 @@ export function UserDropdownMenu() {
           <Avatar>
             <AvatarImage
               src={toAbsoluteUrl('/media/avatars/300-2.png')}
-              alt="@reui"
+              alt="Review workspace"
             />
-            <AvatarFallback>S</AvatarFallback>
+            <AvatarFallback>RW</AvatarFallback>
             <AvatarIndicator className="-end-1.5 -top-1.5">
               <AvatarStatus variant="online" className="size-2.5" />
             </AvatarIndicator>
@@ -157,13 +156,6 @@ export function UserDropdownMenu() {
           <ExternalLink className="size-3 ms-auto" />
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator />
-
-        {/* Action Items */}
-        <DropdownMenuItem>
-          <LogOut />
-          <span>Log out</span>
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
