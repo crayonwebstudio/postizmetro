@@ -7,19 +7,19 @@ export default function AvatarDemo() {
   return (
     <div className="flex -space-x-2">
       <Avatar className="size-7">
-        <AvatarImage src={toAbsoluteUrl('/media/avatars/300-1.png')} alt="@reui" className="border-2 border-background hover:z-10" />
+        <AvatarImage src={toAbsoluteUrl('/media/avatars/300-1.png')} alt="Review workspace" className="border-2 border-background hover:z-10" />
         <AvatarFallback>CH</AvatarFallback>
       </Avatar>
       <Avatar className="size-7">
-        <AvatarImage src={toAbsoluteUrl('/media/avatars/300-2.png')} alt="@reui" className="border-2 border-background hover:z-10" />
+        <AvatarImage src={toAbsoluteUrl('/media/avatars/300-2.png')} alt="Review workspace" className="border-2 border-background hover:z-10" />
         <AvatarFallback>CH</AvatarFallback>
       </Avatar>
       <Avatar className="size-7">
-        <AvatarImage src={toAbsoluteUrl('/media/avatars/300-3.png')} alt="@reui" className="border-2 border-background hover:z-10" />
+        <AvatarImage src={toAbsoluteUrl('/media/avatars/300-3.png')} alt="Review workspace" className="border-2 border-background hover:z-10" />
         <AvatarFallback>CH</AvatarFallback>
       </Avatar>
       <Avatar className="size-7">
-        <AvatarImage src={toAbsoluteUrl('/media/avatars/300-4.png')} alt="@reui" className="border-2 border-background hover:z-10" />
+        <AvatarImage src={toAbsoluteUrl('/media/avatars/300-4.png')} alt="Review workspace" className="border-2 border-background hover:z-10" />
         <AvatarFallback>CH</AvatarFallback>
       </Avatar>
       <Button
